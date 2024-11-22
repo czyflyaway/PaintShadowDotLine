@@ -28,7 +28,8 @@ public:
     void initShader();
     void initQuad();
     void initCube();
-    void updateFrameBuffer();
+    void initFrameBuffer();
+    void updateFrameBuffer(int w, int h);
 protected:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
@@ -37,6 +38,9 @@ protected:
 private:
     void drawQuad();
     void drawCube();
+
+private:
+    void updateMVP(float aspect);
 private:
     Ui::Widget *ui;
 
@@ -54,10 +58,7 @@ private:
 //framebuffer
     GLuint _frameBuffer;
     GLuint _frameBufferTextureColor;
-    GLuint _frameBufferTextureDepth;
-
-
-
+    GLuint _frameBufferRenderBufferDepthStencil;
 private:
     //test
     void initTest();

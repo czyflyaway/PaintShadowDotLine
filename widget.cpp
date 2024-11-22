@@ -90,6 +90,33 @@ void Widget::initCube()
 
 }
 
+void Widget::initFrameBuffer()
+{
+    glGenFramebuffers(1, &_frameBuffer);
+}
+
+void Widget::updateFrameBuffer(int w, int h)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+    glGenTextures(1, &_frameBufferTextureColor);
+    glBindTexture(GL_TEXTURE_2D, _frameBufferTextureColor);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _frameBufferTextureColor, 0);
+
+    glGenRenderbuffers(1, &_frameBufferRenderBufferDepthStencil);
+    glBindRenderbuffer(GL_RENDERBUFFER, _frameBufferRenderBufferDepthStencil);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _frameBufferRenderBufferDepthStencil);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        qDebug() << "Error: framebuffer is not completed";
+    else
+        qDebug() << "Success: framebuffer";
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void Widget::initializeGL()
 {
     initializeOpenGLFunctions();
@@ -97,6 +124,7 @@ void Widget::initializeGL()
     initShader();
     initQuad();
     initCube();
+    initFrameBuffer();
 #ifdef TEST
     initTest();
 #endif
@@ -105,14 +133,8 @@ void Widget::initializeGL()
 void Widget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
-    _cubeMVP.setToIdentity();
-    QMatrix4x4 model;
-    model.rotate(30, 0.0f, 1.0f, 0.0f);
-    QMatrix4x4 camera;
-    camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
-    QMatrix4x4 projecttion;
-     projecttion.perspective(45, float(w) / float(h), 0.1f, 100.f);
-    _cubeMVP = projecttion * camera * model;
+    updateMVP(float(w) / float(h));
+    updateFrameBuffer(w, h);
 }
 
 void Widget::paintGL()
@@ -160,6 +182,18 @@ void Widget::drawCube()
 
     glDisable(GL_DEPTH_TEST);
     _cubeShader.release();
+}
+
+void Widget::updateMVP(float aspect)
+{
+    _cubeMVP.setToIdentity();
+    QMatrix4x4 model;
+    model.rotate(30, 0.0f, 1.0f, 0.0f);
+    QMatrix4x4 camera;
+    camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+    QMatrix4x4 projecttion;
+    projecttion.perspective(45, aspect, 0.1f, 100.f);
+    _cubeMVP = projecttion * camera * model;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
