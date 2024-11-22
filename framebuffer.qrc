@@ -2,6 +2,8 @@
     <qresource prefix="/">
         <file>asserts/shader/quad.frag</file>
         <file>asserts/shader/quad.vert</file>
+        <file>asserts/shader/cube.frag</file>
+        <file>asserts/shader/cube.vert</file>
         <file>asserts/image/img1.png</file>
     </qresource>
 </RCC>
