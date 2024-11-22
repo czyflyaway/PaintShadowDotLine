@@ -67,42 +67,6 @@ void Widget::initCube()
         0, 4, 3, 5, 2, 6, 1, 7  // 连接前后面的边
     };
 
-    // float cubeVertices[] = {
-    //     0.5f,  0.5f, 0.0f,  // top right
-    //     0.5f, -0.5f, 0.0f,  // bottom right
-    //     -0.5f, -0.5f, 0.0f,  // bottom left
-    //     -0.5f,  0.5f, 0.0f,   // top left
-    //     0.5f,  0.5f, -1.0f,  // top right
-    //     0.5f, -0.5f, -1.0f,  // bottom right
-    //     -0.5f, -0.5f, -1.0f,  // bottom left
-    //     -0.5f,  0.5f, -1.0f   // top left
-    // };
-    // float cubeVertices[] = {
-    //     -0.5f, -0.5f, -0.5f,  // 后下左
-    //     0.5f, -0.5f, -0.5f,  // 后下右
-    //     0.5f,  0.5f, -0.5f,  // 后上右
-    //     -0.5f,  0.5f, -0.5f,  // 后上左
-    //     -0.5f, -0.5f,  0.5f,  // 前下左
-    //     0.5f, -0.5f,  0.5f,  // 前下右
-    //     0.5f,  0.5f,  0.5f,  // 前上右
-    //     -0.5f,  0.5f,  0.5f   // 前上左
-    // };
-    // float cubeVertices[] ={
-    //     -pos, pos, -pos,
-    //     pos, pos, -pos,
-    //     pos, -pos, -pos,
-    //     -pos, -pos, -pos,
-    //     -pos, pos, pos,
-    //     -pos, -pos, pos,
-    //     pos, -pos, pos,
-    //     pos, pos, pos
-    // };
-    // unsigned int edgeIndices[] = {  // note that we start from 0!
-    //     0, 1, 1, 2, 2, 3, 3, 0, // 后面四条边
-    //     4, 5, 5, 6, 6, 7, 7, 4, // 前面四条边
-    //     0, 4, 1, 5, 2, 6, 3, 7  // 连接前后面的边
-
-    // };
     glGenVertexArrays(1, &_cubeVAO);
     glGenBuffers(1, &_cubeVBO);
     glGenBuffers(1, &_cubeEBO);
@@ -115,7 +79,7 @@ void Widget::initCube()
     //ebo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(edgeIndices), edgeIndices, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -126,25 +90,6 @@ void Widget::initCube()
 
 }
 
-void Widget::initMVP()
-{
-    _rotation = QQuaternion();
-    _rotation *= QQuaternion::fromAxisAndAngle(QVector3D(1.0f, 0.0f, 0.0f), 45.0f);
-    _rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 1.0f, 0.0f), -0.0f);
-    _rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 0.0f, 1.0f), 0.0f);
-
-    _model.setToIdentity();
-    _model.translate(QVector3D(0.0f, 0.0f, 0.0f));
-    _model.rotate(_rotation);
-
-    _camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
-
-    _projection.setToIdentity();
-    _projection.perspective(45, 1.0f, 1.0f, 20.0f);
-
-    _cubeMVP = _projection * _camera * _model;
-}
-
 void Widget::initializeGL()
 {
     initializeOpenGLFunctions();
@@ -152,7 +97,6 @@ void Widget::initializeGL()
     initShader();
     initQuad();
     initCube();
-    initMVP();
 #ifdef TEST
     initTest();
 #endif
@@ -161,42 +105,14 @@ void Widget::initializeGL()
 void Widget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
-    return;
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-
-    // _rotation = QQuaternion();
-    // _rotation *= QQuaternion::fromAxisAndAngle(QVector3D(1.0f, 0.0f, 0.0f), 45.0f);
-    // _rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 1.0f, 0.0f), -0.0f);
-    // _rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 0.0f, 1.0f), 0.0f);
-    // model.rotate(_rotation);
-    model.rotate(45, 0.0f, 1.0f, 0.0f);
-    // model.translate(0, 0, 1);
-    qDebug() << model;
-
+    model.rotate(30, 0.0f, 1.0f, 0.0f);
     QMatrix4x4 camera;
-    camera.lookAt(QVector3D(0, 0, 10), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
-
+    camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
-     projecttion.perspective(45, 1.0f, 0.1f, 100.f);
+     projecttion.perspective(45, float(w) / float(h), 0.1f, 100.f);
     _cubeMVP = projecttion * camera * model;
-
-    // _cubeMVP = model;
-    QVector4D cubeVertices[] = {
-        QVector4D(0.5f,  0.5f, 0.0f, 1.0f),  // top right
-        QVector4D(0.5f, -0.5f, 0.0f, 1.0f),  // bottom right
-        QVector4D(-0.5f, -0.5f, 0.0f, 1.0f),  // bottom left
-        QVector4D(-0.5f,  0.5f, 0.0f, 1.0f),   // top left
-        QVector4D(0.5f,  0.5f, -1.0f, 1.0f),  // top right
-        QVector4D(0.5f, -0.5f, -1.0f, 1.0f),  // bottom right
-        QVector4D(-0.5f, -0.5f, -1.0f, 1.0f),  // bottom left
-        QVector4D(-0.5f,  0.5f, -1.0f, 1.0f)   // top left
-    };
-
-    for(int i = 0; i < 8; ++i)
-    {
-        qDebug() << _cubeMVP * cubeVertices[i];
-    }
 }
 
 void Widget::paintGL()
@@ -232,17 +148,14 @@ void Widget::drawCube()
 {
     _cubeShader.bind();
     _cubeShader.setUniformValue("uMvpMatrix", _cubeMVP);
-    qDebug() << _cubeMVP;
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_LINE_SMOOTH);
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glBindVertexArray(_cubeVAO);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
-    // glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
-    // glDrawArrays(GL_LINES, 0, 8);
     glBindVertexArray(0);
 
     glDisable(GL_DEPTH_TEST);

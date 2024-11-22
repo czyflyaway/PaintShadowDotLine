@@ -29,7 +29,6 @@ public:
     void initQuad();
     void initCube();
     void updateFrameBuffer();
-    void initMVP();
 protected:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
