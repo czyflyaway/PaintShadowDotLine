@@ -132,6 +132,7 @@ void Widget::initializeGL()
 
 void Widget::resizeGL(int w, int h)
 {
+    qDebug() << "resize GL";
     glViewport(0, 0, w, h);
     updateMVP(float(w) / float(h));
     updateFrameBuffer(w, h);
@@ -139,15 +140,18 @@ void Widget::resizeGL(int w, int h)
 
 void Widget::paintGL()
 {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    drawCube();
-    // drawQuad();
+    // drawCube();
+    drawCubeFramebuffer();
+    drawQuad();
 }
 
 void Widget::drawQuad()
 {
+    glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // 设置为线框模式
     _quadShader.bind();
 
@@ -182,6 +186,15 @@ void Widget::drawCube()
 
     glDisable(GL_DEPTH_TEST);
     _cubeShader.release();
+}
+
+void Widget::drawCubeFramebuffer()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawCube();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Widget::updateMVP(float aspect)

@@ -16,7 +16,7 @@ class Widget;
 }
 QT_END_NAMESPACE
 
-#define TEST
+// #define TEST
 class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -38,7 +38,7 @@ protected:
 private:
     void drawQuad();
     void drawCube();
-
+    void drawCubeFramebuffer();
 private:
     void updateMVP(float aspect);
 private:
