@@ -23,15 +23,16 @@ void Widget::initShader()
 
 void Widget::initQuad()
 {
+    float pos = 1.0f;
     float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
         // positions   // texCoords
-        -0.7f,  0.7f,  0.0f, 1.0f,
-        -0.7f, -0.7f,  0.0f, 0.0f,
-        0.7f, -0.7f,  1.0f, 0.0f,
+        -pos,  pos,  0.0f, 1.0f,
+        -pos, -pos,  0.0f, 0.0f,
+        pos, -pos,  1.0f, 0.0f,
 
-        -0.7f,  0.7f,  0.0f, 1.0f,
-        0.7f, -0.7f,  1.0f, 0.0f,
-        0.7f,  0.7f,  1.0f, 1.0f
+        -pos,  pos,  0.0f, 1.0f,
+        pos, -pos,  1.0f, 0.0f,
+        pos,  pos,  1.0f, 1.0f
     };
 
     glGenVertexArrays(1, &_quadVAO);
