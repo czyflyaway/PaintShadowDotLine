@@ -43,6 +43,8 @@ private:
     void drawCubeFramebuffer();
     void drawCubeDepthFrameBuffer();
     void drawDepthMap();
+    void drawCubeDotDepthFrameBuffer();
+    void drawCubeDot();
 private:
     void updateMVP(float aspect);
 private:
@@ -63,6 +65,9 @@ private:
     QMatrix4x4 _cubeMVP;
     QQuaternion _rotation;
     Shader _cubeDepthMapShader;
+
+//cube dot
+    Shader _cubeDotShader;
 
 //framebuffer
     GLuint _frameBuffer;

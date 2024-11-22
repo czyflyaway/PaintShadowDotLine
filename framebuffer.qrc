@@ -8,6 +8,8 @@
         <file>asserts/shader/cube.vert</file>
         <file>asserts/shader/cubedepth.frag</file>
         <file>asserts/shader/cubedepth.vert</file>
+        <file>asserts/shader/cubedot.frag</file>
+        <file>asserts/shader/cubedot.vert</file>
         <file>asserts/image/img1.png</file>
     </qresource>
 </RCC>

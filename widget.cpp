@@ -19,6 +19,7 @@ void Widget::initShader()
     Q_ASSERT(_cubeShader.initShader(":/asserts/shader/cube.vert", ":/asserts/shader/cube.frag"));
     Q_ASSERT(_cubeDepthMapShader.initShader(":/asserts/shader/cubedepth.vert", ":/asserts/shader/cubedepth.frag"));
     Q_ASSERT(_quadDepthShader.initShader(":/asserts/shader/quaddepth.vert", ":/asserts/shader/quaddepth.frag"));
+    Q_ASSERT(_cubeDotShader.initShader(":/asserts/shader/cubedot.vert", ":/asserts/shader/cubedot.frag"));
 }
 
 void Widget::initQuad()
@@ -171,17 +172,23 @@ void Widget::resizeGL(int w, int h)
 
 void Widget::paintGL()
 {
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    //just draw quad
+    // drawQuad();
+    // just draw cube
     // drawCube();
     //test render framebuffer
     // drawCubeFramebuffer();
     // drawQuad();
-    //test depthmap
+    // //test depthmap
+    // drawCubeDepthFrameBuffer();
+    // drawDepthMap();
+    //test dot cube
+    glLineWidth(3.0f);
     drawCubeDepthFrameBuffer();
-    drawDepthMap();
-
+    drawCubeDot();
 }
 
 void Widget::drawQuad()
@@ -263,6 +270,39 @@ void Widget::drawDepthMap()
 
     glBindVertexArray(0);
     _quadDepthShader.release();
+}
+
+void Widget::drawCubeDotDepthFrameBuffer()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    _cubeDepthMapShader.bind();
+    _cubeDepthMapShader.setUniformValue("uMvpMatrix", _cubeMVP);
+    drawCubeDotDepthFrameBuffer();
+    _cubeDepthMapShader.release();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Widget::drawCubeDot()
+{
+    _cubeDotShader.bind();
+    _cubeDotShader.setUniformValue("depthbuf", 0);
+    _cubeDotShader.setUniformValue("uMvpMatrix", _cubeMVP);
+    {
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LINE_SMOOTH);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glBindVertexArray(_cubeVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);	// use the color attachment texture as the texture of the quad plane
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
+        glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        glDisable(GL_DEPTH_TEST);
+    }
 }
 
 void Widget::updateMVP(float aspect)
