@@ -29,7 +29,9 @@ public:
     void initQuad();
     void initCube();
     void initFrameBuffer();
+    void initFrameBufferDepth();
     void updateFrameBuffer(int w, int h);
+    void udpateFrameBufferDepth(int w, int h);
 protected:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
@@ -39,6 +41,8 @@ private:
     void drawQuad();
     void drawCube();
     void drawCubeFramebuffer();
+    void drawCubeDepthFrameBuffer();
+    void drawDepthMap();
 private:
     void updateMVP(float aspect);
 private:
@@ -55,10 +59,14 @@ private:
     QMatrix4x4 _projection;
     QMatrix4x4 _cubeMVP;
     QQuaternion _rotation;
+    Shader _cubeDepthMapShader;
 //framebuffer
     GLuint _frameBuffer;
     GLuint _frameBufferTextureColor;
     GLuint _frameBufferRenderBufferDepthStencil;
+//framebuffer depth
+    GLuint _frameBufferDepth;
+    GLuint _frameBufferDepthTextureDepth;
 private:
     //test
     void initTest();
