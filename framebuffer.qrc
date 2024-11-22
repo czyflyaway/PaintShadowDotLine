@@ -2,6 +2,8 @@
     <qresource prefix="/">
         <file>asserts/shader/quad.frag</file>
         <file>asserts/shader/quad.vert</file>
+        <file>asserts/shader/quaddepth.frag</file>
+        <file>asserts/shader/quaddepth.vert</file>
         <file>asserts/shader/cube.frag</file>
         <file>asserts/shader/cube.vert</file>
         <file>asserts/shader/cubedepth.frag</file>

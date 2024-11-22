@@ -18,6 +18,7 @@ void Widget::initShader()
     Q_ASSERT(_quadShader.initShader(":/asserts/shader/quad.vert", ":/asserts/shader/quad.frag"));
     Q_ASSERT(_cubeShader.initShader(":/asserts/shader/cube.vert", ":/asserts/shader/cube.frag"));
     Q_ASSERT(_cubeDepthMapShader.initShader(":/asserts/shader/cubedepth.vert", ":/asserts/shader/cubedepth.frag"));
+    Q_ASSERT(_quadDepthShader.initShader(":/asserts/shader/quaddepth.vert", ":/asserts/shader/quaddepth.frag"));
 }
 
 void Widget::initQuad()
@@ -127,13 +128,20 @@ void Widget::udpateFrameBufferDepth(int w, int h)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
 
-    glGenTextures(GL_TEXTURE_2D, &_frameBufferDepthTextureDepth);
+    glGenTextures(1, &_frameBufferDepthTextureDepth);
+    glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _frameBufferDepthTextureDepth, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        qDebug() << "Error: _frameBufferDepth is not completed";
+    else
+        qDebug() << "Success: _frameBufferDepth";
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -145,6 +153,7 @@ void Widget::initializeGL()
     initQuad();
     initCube();
     initFrameBuffer();
+    initFrameBufferDepth();
 #ifdef TEST
     initTest();
 #endif
@@ -156,6 +165,7 @@ void Widget::resizeGL(int w, int h)
     glViewport(0, 0, w, h);
     updateMVP(float(w) / float(h));
     updateFrameBuffer(w, h);
+    udpateFrameBufferDepth(w, h);
 }
 
 void Widget::paintGL()
@@ -164,10 +174,13 @@ void Widget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // drawCube();
+    //test render framebuffer
     // drawCubeFramebuffer();
+    // drawQuad();
+    //test depthmap
     drawCubeDepthFrameBuffer();
     drawDepthMap();
-    // drawQuad();
+
 }
 
 void Widget::drawQuad()
@@ -225,7 +238,6 @@ void Widget::drawCubeDepthFrameBuffer()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
     glClear(GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
     _cubeDepthMapShader.bind();
     _cubeDepthMapShader.setUniformValue("uMvpMatrix", _cubeMVP);
     drawCube();
@@ -238,14 +250,18 @@ void Widget::drawDepthMap()
     glDisable(GL_DEPTH_TEST);
     glClearColor(1.0f, .0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    _quadShader.bind();
 
+    _quadDepthShader.bind();
+    _quadDepthShader.setUniformValue("depthMap", 0);
+    _quadDepthShader.setUniformValue("near_plane", _nearPlane);
+    _quadDepthShader.setUniformValue("far_plane", _farPlane);
     glBindVertexArray(_quadVAO);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);	// use the color attachment texture as the texture of the quad plane
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glBindVertexArray(0);
-    _quadShader.release();
+    _quadDepthShader.release();
 }
 
 void Widget::updateMVP(float aspect)
@@ -256,7 +272,7 @@ void Widget::updateMVP(float aspect)
     QMatrix4x4 camera;
     camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
-    projecttion.perspective(45, aspect, 0.1f, 100.f);
+    projecttion.perspective(45, aspect, _nearPlane, _farPlane);
     _cubeMVP = projecttion * camera * model;
 }
 

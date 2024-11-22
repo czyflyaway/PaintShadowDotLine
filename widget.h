@@ -48,9 +48,12 @@ private:
 private:
     Ui::Widget *ui;
 
+    float _nearPlane = 1.0f;
+    float _farPlane = 7.5f;
 //quad
     Shader _quadShader;
     GLuint _quadVAO, _quadVBO;
+    Shader _quadDepthShader;
 //cube
     Shader _cubeShader;
     GLuint _cubeVAO, _cubeVBO, _cubeEBO;
@@ -60,6 +63,7 @@ private:
     QMatrix4x4 _cubeMVP;
     QQuaternion _rotation;
     Shader _cubeDepthMapShader;
+
 //framebuffer
     GLuint _frameBuffer;
     GLuint _frameBufferTextureColor;
