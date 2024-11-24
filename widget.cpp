@@ -383,10 +383,11 @@ void Widget::updateMVP(float aspect)
 {
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-    model.rotate(40, 0.0f, 1.0f, 0.0f);
-    model.rotate(40, 1.0f, 0.0f, 0.0f);
+    model.rotate(_xDegree, 1.0f, 0.0f, 0.0f);
+    model.rotate(_yDegree, 0.0f, 1.0f, 0.0f);
+    model.rotate(_zDegree, 0.0f, 0.0f, 1.0f);
     QMatrix4x4 camera;
-    camera.lookAt(QVector3D(0, 0, 4), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+    camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
     projecttion.perspective(45, aspect, _nearPlane, _farPlane);
     //    float edge = 3.0f;
@@ -448,3 +449,14 @@ void Widget::initTestTexture()
 {
     test_texture = new QOpenGLTexture(QImage(":/asserts/image/img1.png").mirrored());
 }
+
+void Widget::on_pushButton_clicked()
+{
+    _xDegree =  ui->spinBox_x->value();
+    _yDegree =  ui->spinBox_y->value();
+    _zDegree =  ui->spinBox_z->value();
+    updateMVP(float(size().width()) / float(size().height()));
+    update();
+}
+
+

@@ -17,7 +17,7 @@ class Widget;
 QT_END_NAMESPACE
 
 // #define TEST
-#define LINESMOOTH 0
+#define LINESMOOTH 1
 class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -36,6 +36,9 @@ protected:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
+
+private slots:
+    void on_pushButton_clicked();
 
 private:
     void drawQuad();
@@ -98,5 +101,9 @@ private:
 
     std::vector<unsigned int> edgeIndices;
     std::vector<unsigned int> faceIndices;
+
+    float _xDegree = 0.0;
+    float _yDegree = 0.0;
+    float _zDegree = 0.0;
 };
 #endif // WIDGET_H
