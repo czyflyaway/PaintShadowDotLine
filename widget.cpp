@@ -70,10 +70,18 @@ void Widget::initCube()
         4, 5, 5, 6, 6, 7, 7, 4, // 前面四条边
         0, 4, 3, 5, 2, 6, 1, 7  // 连接前后面的边
     };
-
+    GLuint faceIndices[] = {
+        0, 1, 3, 3, 1, 2,//back counterclock
+        4, 5, 7, 7, 5, 6,//front  counterclock
+        4, 0, 3, 3, 5, 4,//left  counterclock
+        7, 2, 1, 2, 7 ,6,//right  counterclock
+        3, 2, 6, 6, 5, 3,//bottom  clock
+        1, 0, 7, 7, 0, 4,//top counterclock
+    };
     glGenVertexArrays(1, &_cubeVAO);
     glGenBuffers(1, &_cubeVBO);
     glGenBuffers(1, &_cubeEBO);
+    glGenBuffers(1, &_cubeFaceEBO);
 
     glBindVertexArray(_cubeVAO);
     //vbo
@@ -83,6 +91,10 @@ void Widget::initCube()
     //ebo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(edgeIndices), edgeIndices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeFaceEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faceIndices), faceIndices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(0);
@@ -128,6 +140,8 @@ void Widget::updateFrameBuffer(int w, int h)
 
 void Widget::udpateFrameBufferDepth(int w, int h)
 {
+//    w = 2048;
+//    h = 2048;
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
 
     glGenTextures(1, &_frameBufferDepthTextureDepth);
@@ -156,6 +170,9 @@ void Widget::initializeGL()
     initCube();
     initFrameBuffer();
     initFrameBufferDepth();
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef TEST
     initTest();
 #endif
@@ -182,13 +199,15 @@ void Widget::paintGL()
     //test render framebuffer
     // drawCubeFramebuffer();
     // drawQuad();
-    // //test depthmap
-    // drawCubeDepthFrameBuffer();
-    // drawDepthMap();
-    //test dot cube
-    glLineWidth(3.0f);
-    drawCubeDepthFrameBuffer();
-    drawCubeDot();
+     //test depthmap
+     drawCubeDepthFrameBuffer();
+     drawDepthMap();
+//    //test dot cube
+////    glLineWidth(3.0f);
+//    drawCubeDepthFrameBuffer();
+//    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    drawCubeDot();
 }
 
 void Widget::drawQuad()
@@ -215,17 +234,18 @@ void Widget::drawQuad()
 
 void Widget::drawCube()
 {
-    glEnable(GL_DEPTH_TEST);
+#if LINESMOOTH
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+#endif
     glBindVertexArray(_cubeVAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+//    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    glDisable(GL_DEPTH_TEST);
 }
 
 void Widget::drawCubeFramebuffer()
@@ -255,7 +275,6 @@ void Widget::drawCubeDepthFrameBuffer()
 
 void Widget::drawDepthMap()
 {
-    glDisable(GL_DEPTH_TEST);
     glClearColor(1.0f, .0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -288,33 +307,42 @@ void Widget::drawCubeDot()
     _cubeDotShader.bind();
     _cubeDotShader.setUniformValue("depthbuf", 0);
     _cubeDotShader.setUniformValue("uMvpMatrix", _cubeMVP);
-    {
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LINE_SMOOTH);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-        glBindVertexArray(_cubeVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);	// use the color attachment texture as the texture of the quad plane
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
-        glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        glDisable(GL_DEPTH_TEST);
-    }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);	// use the color attachment texture as the texture of the quad plane
+    drawCube();
+    _cubeDotShader.release();
 }
 
 void Widget::updateMVP(float aspect)
 {
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-    model.rotate(30, 0.0f, 1.0f, 0.0f);
+    model.rotate(0, 0.0f, 1.0f, 0.0f);
     QMatrix4x4 camera;
-    camera.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+    camera.lookAt(QVector3D(0, 0, 4), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
     projecttion.perspective(45, aspect, _nearPlane, _farPlane);
     _cubeMVP = projecttion * camera * model;
+
+    float pos = 0.9f;
+    QVector4D cubeVertices[] ={
+        QVector4D(-pos, pos, -pos, 1.0f),
+        QVector4D(pos, pos, -pos, 1.0f),
+        QVector4D(pos, -pos, -pos, 1.0f),
+        QVector4D(-pos, -pos, -pos, 1.0f),
+        QVector4D(-pos, pos, pos, 1.0f),
+        QVector4D(-pos, -pos, pos, 1.0f),
+        QVector4D(pos, -pos, pos, 1.0f),
+        QVector4D(pos, pos, pos, 1.0f)
+    };
+    for(int i = 0; i < 8; ++i)
+    {
+//        qDebug() << (_cubeMVP * cubeVertices[i]) * 0.5 + QVector3D(0.5, 0.5, 0.5);
+//        qDebug() << _cubeMVP * cubeVertices[i].toVector3D();
+        QVector4D ret =_cubeMVP * cubeVertices[i];
+//        qDebug() << ret;
+        qDebug() << "---" << ret *  (1.0f / ret.w());
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -17,6 +17,7 @@ class Widget;
 QT_END_NAMESPACE
 
 // #define TEST
+#define LINESMOOTH 0
 class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -58,7 +59,7 @@ private:
     Shader _quadDepthShader;
 //cube
     Shader _cubeShader;
-    GLuint _cubeVAO, _cubeVBO, _cubeEBO;
+    GLuint _cubeVAO, _cubeVBO, _cubeEBO, _cubeFaceEBO;
     QMatrix4x4 _model;
     QMatrix4x4 _camera;
     QMatrix4x4 _projection;
