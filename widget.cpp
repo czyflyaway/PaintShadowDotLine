@@ -65,12 +65,12 @@ void Widget::initCube()
         pos, -pos, pos,
         pos, pos, pos
     };
-    GLuint edgeIndices[] = {
+    unsigned int edgeIndices[24] = {
         0, 1, 1, 2, 2, 3, 3, 0, // 后面四条边
         4, 5, 5, 6, 6, 7, 7, 4, // 前面四条边
         0, 4, 3, 5, 2, 6, 1, 7  // 连接前后面的边
     };
-    GLuint faceIndices[] = {
+    unsigned int faceIndices[36] = {
         0, 1, 3, 3, 1, 2,//back counterclock
         4, 5, 7, 7, 5, 6,//front  counterclock
         4, 0, 3, 3, 5, 4,//left  counterclock
@@ -150,8 +150,8 @@ void Widget::udpateFrameBufferDepth(int w, int h)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _frameBufferDepthTextureDepth, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
+    // glDrawBuffer(GL_NONE);
+    // glReadBuffer(GL_NONE);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         qDebug() << "Error: _frameBufferDepth is not completed";
     else
@@ -195,28 +195,29 @@ void Widget::paintGL()
     //just draw quad
     // drawQuad();
     // just draw cube
-//    drawCubeFaces();
+    //    drawCubeFaces();
     //test render framebuffer
     // drawCubeFramebuffer();
     // drawQuad();
-//     //test depthmap
-//     drawCubeDepthFrameBuffer();
-//     drawDepthMap();
-//    //test dot cube
-////    glLineWidth(3.0f);
-//    drawCubeDepthFrameBuffer();
-//    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//    drawCubeDot();
+    //     //test depthmap
+    //     drawCubeDepthFrameBuffer();
+    //     drawDepthMap();
+    //    //test dot cube
+    ////    glLineWidth(3.0f);
+    //    drawCubeDepthFrameBuffer();
+    //    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //    drawCubeDot();
     //1.
-//    drawCubeFaces();
+    //    drawCubeFaces();
     //2.
-//    glViewport(0, 0, _shadowWidth, _shadowHeight);
-//    drawCubeFacesDepthFrameBuffer();
-//    glViewport(0, 0, _srcWidth, _srcHeight);
-//    drawDepthMap();
+    //    glViewport(0, 0, _shadowWidth, _shadowHeight);
+    //    drawCubeFacesDepthFrameBuffer();
+    //    glViewport(0, 0, _srcWidth, _srcHeight);
+    //    drawDepthMap();
     //3.
     glViewport(0, 0, _shadowWidth, _shadowHeight);
+    glLineWidth(1.0f);
     drawCubeFacesDepthFrameBuffer();
     glLineWidth(1.0f);
     glViewport(0, 0, _srcWidth, _srcHeight);
@@ -371,14 +372,17 @@ void Widget::updateMVP(float aspect)
 {
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-    model.rotate(25, 0.0f, 1.0f, 0.0f);
-//    model.rotate(45, 1.0f, 0.0f, 0.0f);
+    model.rotate(30, 0.0f, 1.0f, 0.0f);
+       // model.rotate(40, 1.0f, 0.0f, 0.0f);
     QMatrix4x4 camera;
     camera.lookAt(QVector3D(0, 0, 4), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
-    projecttion.perspective(60, aspect, _nearPlane, _farPlane);
+    projecttion.perspective(45, aspect, _nearPlane, _farPlane);
+    //    float edge = 3.0f;
+    //    projecttion.ortho(-edge, edge, -edge, edge, _nearPlane, _farPlane);
     _cubeMVP = projecttion * camera * model;
 
+    qDebug() << _cubeMVP;
     float pos = 1.0f;
     QVector4D cubeVertices[] ={
         QVector4D(-pos, pos, -pos, 1.0f),
@@ -392,10 +396,10 @@ void Widget::updateMVP(float aspect)
     };
     for(int i = 0; i < 8; ++i)
     {
-//        qDebug() << (_cubeMVP * cubeVertices[i]) * 0.5 + QVector3D(0.5, 0.5, 0.5);
-//        qDebug() << _cubeMVP * cubeVertices[i].toVector3D();
+        //        qDebug() << (_cubeMVP * cubeVertices[i]) * 0.5 + QVector3D(0.5, 0.5, 0.5);
+        //        qDebug() << _cubeMVP * cubeVertices[i].toVector3D();
         QVector4D ret =_cubeMVP * cubeVertices[i];
-//        qDebug() << ret;
+        //        qDebug() << ret;
         qDebug() << "---" << ret *  (1.0f / ret.w());
     }
 }
