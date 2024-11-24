@@ -17,7 +17,7 @@ class Widget;
 QT_END_NAMESPACE
 
 // #define TEST
-#define LINESMOOTH 1
+#define LINESMOOTH 0
 class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -89,5 +89,10 @@ private:
     void initTest();
     void initTestTexture();
     QOpenGLTexture* test_texture;
+
+    int _srcWidth;
+    int _srcHeight;
+    int _shadowWidth = 1024;
+    int _shadowHeight = 1024;
 };
 #endif // WIDGET_H

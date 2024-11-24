@@ -54,7 +54,7 @@ void Widget::initQuad()
 
 void Widget::initCube()
 {
-    float pos = 0.9f;
+    float pos = 1.0f;
     float cubeVertices[] ={
         -pos, pos, -pos,
         pos, pos, -pos,
@@ -140,8 +140,6 @@ void Widget::updateFrameBuffer(int w, int h)
 
 void Widget::udpateFrameBufferDepth(int w, int h)
 {
-//    w = 2048;
-//    h = 2048;
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
 
     glGenTextures(1, &_frameBufferDepthTextureDepth);
@@ -180,11 +178,13 @@ void Widget::initializeGL()
 
 void Widget::resizeGL(int w, int h)
 {
+    _srcWidth = w;
+    _srcHeight = h;
     qDebug() << "resize GL";
-    glViewport(0, 0, w, h);
+    glViewport(0, 0, _srcWidth, _srcHeight);
     updateMVP(float(w) / float(h));
     updateFrameBuffer(w, h);
-    udpateFrameBufferDepth(w, h);
+    udpateFrameBufferDepth(_shadowWidth, _shadowHeight);
 }
 
 void Widget::paintGL()
@@ -211,11 +211,17 @@ void Widget::paintGL()
     //1.
 //    drawCubeFaces();
     //2.
+//    glViewport(0, 0, _shadowWidth, _shadowHeight);
 //    drawCubeFacesDepthFrameBuffer();
+//    glViewport(0, 0, _srcWidth, _srcHeight);
 //    drawDepthMap();
     //3.
+    glViewport(0, 0, _shadowWidth, _shadowHeight);
     drawCubeFacesDepthFrameBuffer();
+    glLineWidth(1.0f);
+    glViewport(0, 0, _srcWidth, _srcHeight);
     drawCubeDot();
+    glLineWidth(1.0f);
 }
 
 void Widget::drawQuad()
@@ -365,15 +371,15 @@ void Widget::updateMVP(float aspect)
 {
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-    model.rotate(30, 0.0f, 1.0f, 0.0f);
-    model.rotate(30, 1.0f, 0.0f, 0.0f);
+    model.rotate(25, 0.0f, 1.0f, 0.0f);
+//    model.rotate(45, 1.0f, 0.0f, 0.0f);
     QMatrix4x4 camera;
     camera.lookAt(QVector3D(0, 0, 4), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
-    projecttion.perspective(45, aspect, _nearPlane, _farPlane);
+    projecttion.perspective(60, aspect, _nearPlane, _farPlane);
     _cubeMVP = projecttion * camera * model;
 
-    float pos = 0.9f;
+    float pos = 1.0f;
     QVector4D cubeVertices[] ={
         QVector4D(-pos, pos, -pos, 1.0f),
         QVector4D(pos, pos, -pos, 1.0f),
