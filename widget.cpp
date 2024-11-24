@@ -195,19 +195,27 @@ void Widget::paintGL()
     //just draw quad
     // drawQuad();
     // just draw cube
-    // drawCube();
+//    drawCubeFaces();
     //test render framebuffer
     // drawCubeFramebuffer();
     // drawQuad();
-     //test depthmap
-     drawCubeDepthFrameBuffer();
-     drawDepthMap();
+//     //test depthmap
+//     drawCubeDepthFrameBuffer();
+//     drawDepthMap();
 //    //test dot cube
 ////    glLineWidth(3.0f);
 //    drawCubeDepthFrameBuffer();
 //    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //    drawCubeDot();
+    //1.
+//    drawCubeFaces();
+    //2.
+//    drawCubeFacesDepthFrameBuffer();
+//    drawDepthMap();
+    //3.
+    drawCubeFacesDepthFrameBuffer();
+    drawCubeDot();
 }
 
 void Widget::drawQuad()
@@ -243,7 +251,6 @@ void Widget::drawCube()
     glBindVertexArray(_cubeVAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
-//    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
 }
@@ -309,15 +316,57 @@ void Widget::drawCubeDot()
     _cubeDotShader.setUniformValue("uMvpMatrix", _cubeMVP);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);	// use the color attachment texture as the texture of the quad plane
-    drawCube();
+    drawCubeBorder();
     _cubeDotShader.release();
+}
+
+void Widget::drawCubeFacesDepthFrameBuffer()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    _cubeDepthMapShader.bind();
+    _cubeDepthMapShader.setUniformValue("uMvpMatrix", _cubeMVP);
+    drawCubeFacesHelper();
+    _cubeDepthMapShader.release();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Widget::drawCubeFaces()
+{
+    _cubeShader.bind();
+    _cubeShader.setUniformValue("uMvpMatrix", _cubeMVP);
+    drawCubeFacesHelper();
+    _cubeShader.release();
+}
+
+void Widget::drawCubeFacesHelper()
+{
+    glBindVertexArray(_cubeVAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeFaceEBO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
+void Widget::drawCubeBorder()
+{
+#if LINESMOOTH
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+#endif
+    glBindVertexArray(_cubeVAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 
 void Widget::updateMVP(float aspect)
 {
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-    model.rotate(0, 0.0f, 1.0f, 0.0f);
+    model.rotate(30, 0.0f, 1.0f, 0.0f);
+    model.rotate(30, 1.0f, 0.0f, 0.0f);
     QMatrix4x4 camera;
     camera.lookAt(QVector3D(0, 0, 4), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;

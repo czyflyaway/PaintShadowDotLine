@@ -19,8 +19,10 @@ float getShadow(vec3 pos) {
     castmask = min(castmask, 1.0);
     float d = texture(depthbuf, p.xy).r;
 //    return castmask * max(sign(p.z - d - 0.00001), 0.0);
-    if(abs(d - p.z) < 0.000001)
-        return 1.0;
+
+    return p.z > d ? 1.0 : 0.0;
+//    if(abs(d - p.z) < 0.000001)
+//        return 1.0;
 //    return 0.0f;
 }
 

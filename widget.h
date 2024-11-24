@@ -17,7 +17,7 @@ class Widget;
 QT_END_NAMESPACE
 
 // #define TEST
-#define LINESMOOTH 0
+#define LINESMOOTH 1
 class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -46,6 +46,13 @@ private:
     void drawDepthMap();
     void drawCubeDotDepthFrameBuffer();
     void drawCubeDot();
+
+
+    //
+    void drawCubeFacesDepthFrameBuffer();
+    void drawCubeFaces();
+    void drawCubeFacesHelper();
+    void drawCubeBorder();
 private:
     void updateMVP(float aspect);
 private:
