@@ -30,9 +30,8 @@ public:
     void initQuad();
     void initCube();
     void initFrameBuffer();
-    void initFrameBufferDepth();
     void updateFrameBuffer(int w, int h);
-    void udpateFrameBufferDepth(int w, int h);
+    void initFrameBufferDepth();
 protected:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
@@ -55,6 +54,8 @@ private:
     void drawCubeBorder();
 private:
     void updateMVP(float aspect);
+    void bindDepthMap();
+    void generateDepthMap();
 private:
     Ui::Widget *ui;
 
@@ -94,5 +95,8 @@ private:
     int _srcHeight;
     int _shadowWidth = 1024;
     int _shadowHeight = 1024;
+
+    std::vector<unsigned int> edgeIndices;
+    std::vector<unsigned int> faceIndices;
 };
 #endif // WIDGET_H

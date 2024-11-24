@@ -55,28 +55,30 @@ void Widget::initQuad()
 void Widget::initCube()
 {
     float pos = 1.0f;
-    float cubeVertices[] ={
-        -pos, pos, -pos,
+    float cubeVertices[24] = {
         pos, pos, -pos,
         pos, -pos, -pos,
-        -pos, -pos, -pos,
+        pos, -pos, pos,
+        pos, pos, pos,
         -pos, pos, pos,
         -pos, -pos, pos,
-        pos, -pos, pos,
-        pos, pos, pos
+        -pos, -pos, -pos,
+        -pos, pos, -pos
     };
-    unsigned int edgeIndices[24] = {
-        0, 1, 1, 2, 2, 3, 3, 0, // 后面四条边
-        4, 5, 5, 6, 6, 7, 7, 4, // 前面四条边
-        0, 4, 3, 5, 2, 6, 1, 7  // 连接前后面的边
+    edgeIndices = {
+        0,1,1,2,2,3,
+        3,0,4,3,2,5,
+        5,4,1,6,6,5,
+        6,7,7,4,7,0
     };
-    unsigned int faceIndices[36] = {
-        0, 1, 3, 3, 1, 2,//back counterclock
-        4, 5, 7, 7, 5, 6,//front  counterclock
-        4, 0, 3, 3, 5, 4,//left  counterclock
-        7, 2, 1, 2, 7 ,6,//right  counterclock
-        3, 2, 6, 6, 5, 3,//bottom  clock
-        1, 0, 7, 7, 0, 4,//top counterclock
+
+    faceIndices = {
+        0,1,2,3,
+        4,3,2,5,
+        5,2,1,6,
+        6,7,4,5,
+        7,0,3,4,
+        6,1,0,7
     };
     glGenVertexArrays(1, &_cubeVAO);
     glGenBuffers(1, &_cubeVBO);
@@ -88,14 +90,14 @@ void Widget::initCube()
     glBindBuffer(GL_ARRAY_BUFFER, _cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
-    //ebo
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(edgeIndices), edgeIndices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    // //ebo
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * edgeIndices.size(), &edgeIndices.front(), GL_STATIC_DRAW);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeFaceEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faceIndices), faceIndices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeFaceEBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * faceIndices.size(), &faceIndices.front(), GL_STATIC_DRAW);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -109,11 +111,6 @@ void Widget::initCube()
 void Widget::initFrameBuffer()
 {
     glGenFramebuffers(1, &_frameBuffer);
-}
-
-void Widget::initFrameBufferDepth()
-{
-    glGenFramebuffers(1, &_frameBufferDepth);
 }
 
 void Widget::updateFrameBuffer(int w, int h)
@@ -138,24 +135,25 @@ void Widget::updateFrameBuffer(int w, int h)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Widget::udpateFrameBufferDepth(int w, int h)
+void Widget::initFrameBufferDepth()
 {
+    glGenFramebuffers(1, &_frameBufferDepth);
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
 
     glGenTextures(1, &_frameBufferDepthTextureDepth);
     glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _shadowWidth, _shadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _frameBufferDepthTextureDepth, 0);
+
     // glDrawBuffer(GL_NONE);
     // glReadBuffer(GL_NONE);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         qDebug() << "Error: _frameBufferDepth is not completed";
     else
         qDebug() << "Success: _frameBufferDepth";
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -184,7 +182,6 @@ void Widget::resizeGL(int w, int h)
     glViewport(0, 0, _srcWidth, _srcHeight);
     updateMVP(float(w) / float(h));
     updateFrameBuffer(w, h);
-    udpateFrameBufferDepth(_shadowWidth, _shadowHeight);
 }
 
 void Widget::paintGL()
@@ -216,10 +213,8 @@ void Widget::paintGL()
     //    glViewport(0, 0, _srcWidth, _srcHeight);
     //    drawDepthMap();
     //3.
-    glViewport(0, 0, _shadowWidth, _shadowHeight);
     glLineWidth(1.0f);
-    drawCubeFacesDepthFrameBuffer();
-    glLineWidth(1.0f);
+    generateDepthMap();
     glViewport(0, 0, _srcWidth, _srcHeight);
     drawCubeDot();
     glLineWidth(1.0f);
@@ -318,12 +313,28 @@ void Widget::drawCubeDotDepthFrameBuffer()
 
 void Widget::drawCubeDot()
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, _srcWidth, _srcHeight);
+
     _cubeDotShader.bind();
     _cubeDotShader.setUniformValue("depthbuf", 0);
     _cubeDotShader.setUniformValue("uMvpMatrix", _cubeMVP);
+
+#if LINESMOOTH
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+#endif
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _frameBufferDepthTextureDepth);	// use the color attachment texture as the texture of the quad plane
-    drawCubeBorder();
+
+    glBindVertexArray(_cubeVAO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDrawElements(GL_LINES, (GLsizei)edgeIndices.size(), GL_UNSIGNED_INT, &edgeIndices.front());
+    glBindVertexArray(0);
     _cubeDotShader.release();
 }
 
@@ -372,8 +383,8 @@ void Widget::updateMVP(float aspect)
 {
     _cubeMVP.setToIdentity();
     QMatrix4x4 model;
-    model.rotate(30, 0.0f, 1.0f, 0.0f);
-       // model.rotate(40, 1.0f, 0.0f, 0.0f);
+    model.rotate(40, 0.0f, 1.0f, 0.0f);
+    model.rotate(40, 1.0f, 0.0f, 0.0f);
     QMatrix4x4 camera;
     camera.lookAt(QVector3D(0, 0, 4), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
     QMatrix4x4 projecttion;
@@ -402,6 +413,30 @@ void Widget::updateMVP(float aspect)
         //        qDebug() << ret;
         qDebug() << "---" << ret *  (1.0f / ret.w());
     }
+}
+
+void Widget::bindDepthMap()
+{
+
+}
+
+void Widget::generateDepthMap()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferDepth);
+    glViewport(0, 0, _shadowWidth, _shadowHeight);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    _cubeDepthMapShader.bind();
+    _cubeDepthMapShader.setUniformValue("uMvpMatrix", _cubeMVP);
+
+    glBindVertexArray(_cubeVAO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _cubeFaceEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDrawElements(GL_QUADS, (GLsizei)faceIndices.size(), GL_UNSIGNED_INT, &faceIndices.front());
+    glBindVertexArray(0);
+    _cubeDepthMapShader.release();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
