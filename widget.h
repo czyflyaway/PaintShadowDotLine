@@ -39,7 +39,7 @@ protected:
 
 private slots:
     void on_pushButton_clicked();
-
+    void slotSpinChanged(int value);
 private:
     void drawQuad();
     void drawCube();

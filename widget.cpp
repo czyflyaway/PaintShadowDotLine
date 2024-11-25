@@ -6,6 +6,9 @@ Widget::Widget(QWidget *parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
+    connect(ui->spinBox_x, SIGNAL(valueChanged(int)), this, SLOT(slotSpinChanged(int)));
+    connect(ui->spinBox_y, SIGNAL(valueChanged(int)), this, SLOT(slotSpinChanged(int)));
+    connect(ui->spinBox_z, SIGNAL(valueChanged(int)), this, SLOT(slotSpinChanged(int)));
 }
 
 Widget::~Widget()
@@ -451,6 +454,11 @@ void Widget::initTestTexture()
 }
 
 void Widget::on_pushButton_clicked()
+{
+
+}
+
+void Widget::slotSpinChanged(int value)
 {
     _xDegree =  ui->spinBox_x->value();
     _yDegree =  ui->spinBox_y->value();
